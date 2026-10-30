@@ -1,30 +1,586 @@
-html, body {
-    background-color: lightblue;
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
+/* ==========================================================================
+   CSE 340 Service Network — main.css
+   A clean, fast, content-first design language inspired by the best
+   consumer web UX: generous whitespace, soft elevation, crisp type,
+   obvious interaction states, light + dark themes, and full accessibility.
+
+   Works with the existing markup (no HTML changes required):
+     <nav> › ul › li › a         → sticky app bar with brand wordmark
+     <main> › h1 [+ h2] [+ p]    → page header / hero
+     <main> › img.main-logo      → hero logo card (home)
+     <main> › ul › li[img]       → organization result cards
+     <main> › ul › li            → numbered project cards
+     <footer> › p                → quiet footer
+
+   Optional: add aria-current="page" to the active nav link to highlight it.
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   1. Design tokens
+   -------------------------------------------------------------------------- */
+:root {
+    color-scheme: light dark;
+
+    /* Type */
+    --font: "Google Sans", "Product Sans", Inter, system-ui, -apple-system,
+            "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    /* Surfaces */
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --surface-hover: #f8fafd;
+    --nav-bg: rgb(255 255 255 / 0.82);
+
+    /* Text */
+    --text: #202124;
+    --text-muted: #5f6368;
+
+    /* Lines */
+    --border: #dadce0;
+    --border-soft: #e8eaed;
+
+    /* Brand + accents */
+    --brand: #1a4b78;
+    --accent: #1a73e8;
+    --accent-strong: #174ea6;
+    --accent-soft: #e8f0fe;
+    --blue: #1a73e8;
+    --red: #ea4335;
+    --yellow: #fbbc04;
+    --green: #34a853;
+
+    /* Gradient used on display headings */
+    --grad-a: #1a4b78;
+    --grad-b: #1a73e8;
+
+    /* Elevation */
+    --shadow-sm: 0 1px 2px rgb(60 64 67 / 0.12), 0 1px 3px 1px rgb(60 64 67 / 0.08);
+    --shadow-md: 0 1px 3px rgb(60 64 67 / 0.16), 0 4px 10px 4px rgb(60 64 67 / 0.09);
+    --shadow-lg: 0 8px 24px rgb(60 64 67 / 0.14), 0 2px 6px rgb(60 64 67 / 0.1);
+
+    /* Shape + layout */
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-pill: 999px;
+    --gutter: clamp(16px, 4vw, 32px);
+    --nav-h: 64px;
+    --content-w: 1120px;
+    --reading-w: 66ch;
+
+    /* Motion */
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #202124;
+        --surface: #2d2e31;
+        --surface-hover: #35363a;
+        --nav-bg: rgb(32 33 36 / 0.82);
+
+        --text: #e8eaed;
+        --text-muted: #9aa0a6;
+
+        --border: #3c4043;
+        --border-soft: #303134;
+
+        --brand: #aecbfa;
+        --accent: #8ab4f8;
+        --accent-strong: #aecbfa;
+        --accent-soft: rgb(138 180 248 / 0.16);
+
+        --grad-a: #aecbfa;
+        --grad-b: #8ab4f8;
+
+        --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.5), 0 1px 3px 1px rgb(0 0 0 / 0.3);
+        --shadow-md: 0 1px 3px rgb(0 0 0 / 0.5), 0 4px 10px 4px rgb(0 0 0 / 0.3);
+        --shadow-lg: 0 8px 24px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.4);
+    }
+}
+
+
+/* --------------------------------------------------------------------------
+   2. Reset + base
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
 }
 
 body {
-    nav {
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
+    margin: 0;
+    padding: 0;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
 
-        li {
-            display: inline;
-            margin-right: 15px;
-        }
+/* Soft, multi-colour glow behind the home hero */
+body:has(.main-logo) {
+    background-image:
+        radial-gradient(48rem 26rem at 18% -4rem, rgb(26 115 232 / 0.12), transparent 70%),
+        radial-gradient(40rem 24rem at 82% -2rem, rgb(52 168 83 / 0.10), transparent 70%),
+        radial-gradient(32rem 20rem at 55% -6rem, rgb(251 188 4 / 0.12), transparent 70%);
+    background-repeat: no-repeat;
+}
 
-        a {
-            text-decoration: none;
-            color: #333;
-            font-weight: bold;
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
 
-            &:hover {
-                color: #0066cc;
-            }
-        }
+a {
+    color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+a:hover {
+    color: var(--accent-strong);
+}
+
+::selection {
+    background: var(--accent-soft);
+    color: var(--text);
+}
+
+:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+
+/* --------------------------------------------------------------------------
+   3. Navigation — sticky app bar
+   -------------------------------------------------------------------------- */
+nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: var(--nav-h);
+    padding: 0 var(--gutter);
+    background: var(--nav-bg);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+/* Brand wordmark: a tiny "network" mark + site name, drawn entirely in CSS */
+nav::before {
+    content: "CSE 340 Service Network";
+    flex: none;
+    display: inline-block;
+    height: 32px;
+    padding-left: 42px;
+    margin-right: clamp(8px, 3vw, 32px);
+    line-height: 32px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    color: var(--brand);
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 9 8 23M16 9l8 14M8 23h16' stroke='%23bdc1c6' stroke-width='2' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='16' cy='8' r='5.5' fill='%231a73e8'/%3E%3Ccircle cx='7' cy='23' r='5.5' fill='%23ea4335'/%3E%3Ccircle cx='25' cy='23' r='5.5' fill='%2334a853'/%3E%3C/svg%3E")
+        no-repeat left center / 32px 32px;
+}
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+nav ul::-webkit-scrollbar {
+    display: none;
+}
+
+nav li {
+    display: block;
+    margin: 0;
+}
+
+nav a {
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 18px;
+    border-radius: var(--radius-pill);
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+nav a:hover {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+}
+
+nav a:active {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+nav a[aria-current="page"] {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-weight: 600;
+}
+
+
+/* --------------------------------------------------------------------------
+   4. Page layout
+   -------------------------------------------------------------------------- */
+main {
+    flex: 1 0 auto;
+    width: min(var(--content-w), 100% - (var(--gutter) * 2));
+    margin-inline: auto;
+    padding-block: clamp(40px, 7vw, 80px) clamp(56px, 8vw, 96px);
+}
+
+
+/* --------------------------------------------------------------------------
+   5. Typography
+   -------------------------------------------------------------------------- */
+h1, h2, h3 {
+    margin: 0;
+    color: var(--text);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+}
+
+/* Standalone page title (e.g. "Organizations") */
+main > h1 {
+    font-size: clamp(2.25rem, 5.5vw, 3.25rem);
+    margin-bottom: 16px;
+}
+
+/* When an <h2> follows, the <h1> becomes a small "eyebrow" label chip */
+main > h1:has(+ h2) {
+    display: inline-block;
+    padding: 6px 14px;
+    margin-bottom: 20px;
+    border-radius: var(--radius-pill);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.4;
+}
+
+/* Headline under the eyebrow — gradient display type */
+main > h2 {
+    font-size: clamp(1.875rem, 4.5vw, 2.75rem);
+    font-weight: 600;
+    background: linear-gradient(100deg, var(--grad-a), var(--grad-b));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    padding-bottom: 0.08em; /* keeps descenders from being clipped */
+}
+
+main > p {
+    max-width: var(--reading-w);
+    margin: 16px 0 0;
+    color: var(--text-muted);
+    font-size: clamp(1.0625rem, 1.6vw, 1.25rem);
+    line-height: 1.65;
+}
+
+
+/* --------------------------------------------------------------------------
+   6. Home hero (any <main> that contains .main-logo)
+   -------------------------------------------------------------------------- */
+main:has(> .main-logo) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-top: clamp(48px, 9vw, 112px);
+}
+
+main:has(> .main-logo) > h2 {
+    font-size: clamp(2.25rem, 7vw, 4.25rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    max-width: 24ch;
+    text-wrap: pretty; /* fills lines naturally so "CSE 340" isn't split apart */
+}
+
+main:has(> .main-logo) > p {
+    margin-inline: auto;
+    margin-top: 24px;
+    max-width: 56ch;
+}
+
+/* Logo sits above the headline, presented on a floating card */
+.main-logo {
+    order: -1;
+    width: min(340px, 78%);
+    margin: 0 auto clamp(28px, 5vw, 44px);
+    padding: 20px 28px;
+    background: #ffffff; /* logo artwork is dark — keep it on white in both themes */
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: box-shadow 0.25s var(--ease), transform 0.25s var(--ease);
+}
+
+.main-logo:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-3px);
+}
+
+
+/* --------------------------------------------------------------------------
+   7. Lists → cards
+   -------------------------------------------------------------------------- */
+main ul {
+    list-style: none;
+    margin: clamp(28px, 4vw, 40px) 0 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+    max-width: 860px;
+    counter-reset: item;
+}
+
+main li {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    color: var(--text-muted);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    transition: box-shadow 0.2s var(--ease), border-color 0.2s var(--ease),
+                background-color 0.2s var(--ease);
+}
+
+main li:hover {
+    background: var(--surface-hover);
+    border-color: transparent;
+    box-shadow: var(--shadow-md);
+}
+
+main li strong {
+    color: var(--text);
+    font-size: 1.1875rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+
+/* 7a. Organizations — logo tile on the left, name + contact on the right */
+main li:has(> img) {
+    min-height: 96px;
+    padding: 28px 28px 28px 112px;
+    word-break: break-word;
+}
+
+main li > img {
+    position: absolute;
+    left: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 60px;
+    height: 60px;
+    padding: 7px;
+    object-fit: contain;
+    background: #ffffff;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+}
+
+
+/* 7b. Projects — numbered cards with rotating accent colours */
+main li:not(:has(> img)) {
+    counter-increment: item;
+    min-height: 80px;
+    padding: 26px 28px 26px 88px;
+    color: var(--text);
+}
+
+main li:not(:has(> img))::before {
+    content: counter(item);
+    position: absolute;
+    left: 28px;
+    top: 22px;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+main li:not(:has(> img)):nth-child(4n + 2)::before { background: var(--red); }
+main li:not(:has(> img)):nth-child(4n + 3)::before { background: var(--yellow); color: #202124; }
+main li:not(:has(> img)):nth-child(4n + 4)::before { background: var(--green); }
+
+
+/* --------------------------------------------------------------------------
+   8. Footer
+   -------------------------------------------------------------------------- */
+footer {
+    margin-top: auto;
+    padding: 28px var(--gutter);
+    background: var(--surface);
+    border-top: 1px solid var(--border-soft);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+footer p {
+    margin: 0;
+}
+
+
+/* --------------------------------------------------------------------------
+   9. Entrance motion (subtle, staggered, opt-out for reduced motion)
+   -------------------------------------------------------------------------- */
+@keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    main > * {
+        animation: rise 0.55s var(--ease) both;
     }
-}   
+
+    main > :nth-child(2) { animation-delay: 0.06s; }
+    main > :nth-child(3) { animation-delay: 0.12s; }
+    main > :nth-child(4) { animation-delay: 0.18s; }
+
+    main li {
+        animation: rise 0.5s var(--ease) both;
+    }
+
+    main li:nth-child(1) { animation-delay: 0.14s; }
+    main li:nth-child(2) { animation-delay: 0.2s; }
+    main li:nth-child(3) { animation-delay: 0.26s; }
+    main li:nth-child(4) { animation-delay: 0.32s; }
+    main li:nth-child(n + 5) { animation-delay: 0.38s; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
+
+
+/* --------------------------------------------------------------------------
+   10. Small screens
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+    :root {
+        --nav-h: 56px;
+    }
+
+    /* Collapse the wordmark to just the mark so links get the room */
+    nav::before {
+        width: 32px;
+        padding-left: 0;
+        font-size: 0;
+        margin-right: 8px;
+    }
+
+    nav a {
+        padding: 0 14px;
+        height: 38px;
+    }
+
+    main li:has(> img) {
+        min-height: 84px;
+        padding: 22px 20px 22px 88px;
+    }
+
+    main li > img {
+        left: 20px;
+        width: 52px;
+        height: 52px;
+    }
+
+    main li:not(:has(> img)) {
+        padding: 22px 20px 22px 72px;
+    }
+
+    main li:not(:has(> img))::before {
+        left: 20px;
+        top: 18px;
+        width: 36px;
+        height: 36px;
+    }
+}
+
+
+/* --------------------------------------------------------------------------
+   11. Print
+   -------------------------------------------------------------------------- */
+@media print {
+    nav { display: none; }
+
+    body,
+    body:has(.main-logo) {
+        background: #ffffff;
+        color: #000000;
+    }
+
+    main li {
+        box-shadow: none;
+        break-inside: avoid;
+    }
+
+    main > h2 {
+        -webkit-text-fill-color: currentColor;
+        color: #000000;
+        background: none;
+    }
+}
