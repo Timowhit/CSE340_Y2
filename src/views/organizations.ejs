@@ -4,8 +4,9 @@
     <%- include('partials/header') %>
 
     <main>
-        <h1><%= title %></h1> 
-        <p>Here are a few of our partner organizations:</p>
+        <h1><%= locals.title || 'CSE 340 Service Network' %></h1> 
+        <h2>Our Partner Organizations</h2>
+        <p>Here are a few of our appreciated business partners:</p>
         <ul>
             <li><img src="/images/brightfuture-logo.png" alt="BrightFuture Builders logo"><strong>BrightFuture
                     Builders</strong>: info@brightfuture.org</li>
