@@ -267,6 +267,58 @@ main {
     padding-block: clamp(40px, 7vw, 80px) clamp(56px, 8vw, 96px);
 }
 
+/* Skeleton cards (Organizations loading state) */
+main li.skeleton-card,
+main li.state-msg {
+    counter-increment: none;
+}
+
+main li.skeleton-card::before,
+main li.state-msg::before {
+    content: none;
+}
+
+main li.skeleton-card {
+    min-height: 96px;
+    padding: 28px 28px 28px 112px;
+}
+
+main li.state-msg {
+    padding: 26px 28px;
+}
+
+/* Shimmering shapes: background-image only, so no shorthand clobbers anything */
+.sk {
+    display: block;
+    background-image: linear-gradient(90deg,
+        var(--border-soft) 25%, var(--surface-hover) 50%, var(--border-soft) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s var(--ease) infinite;
+    border-radius: 8px;
+}
+
+.sk-logo {
+    position: absolute;
+    left: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-sm);
+}
+
+.sk-line { height: 14px; }
+.sk-line--title { width: min(220px, 60%); height: 18px; margin-bottom: 12px; }
+.sk-line--text  { width: min(300px, 85%); }
+
+@media (prefers-reduced-motion: reduce) {
+    .sk { animation: none; }
+}
+
+@media (max-width: 640px) {
+    main li.skeleton-card { min-height: 84px; padding: 22px 20px 22px 88px; }
+    .sk-logo { left: 20px; width: 52px; height: 52px; }
+}
 
 /* --------------------------------------------------------------------------
    5. Typography
@@ -584,3 +636,8 @@ footer p {
         background: none;
     }
 }
+
+
+/* ==========================================================================
+   End of main.css
+   ========================================================================== */

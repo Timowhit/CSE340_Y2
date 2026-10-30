@@ -1,55 +1,68 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import { getOrganizations } from './src/models/organizations.js';
 
-// Define the application environment
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
-// Define the port number the server will listen on
 const PORT = process.env.PORT || 3000;
-// import.meta.url gives the URL of the current module
 const __filename = fileURLToPath(import.meta.url);
-// path.dirname() returns the directory name of a path
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
-/**
-  * Configure Express middleware
-  */
+// Templating
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'src/views'));
 
-// Serve static files from the public directory
+// Middleware
 app.use(express.static(path.join(__dirname, 'public')));
 
-/**
- * Routes
- */
-app.get('/', async (req, res) => {
-    const title = 'Home';
-    res.render('home', { title });
+app.use((req, res, next) => {
+    res.locals.currentPath = req.path;
+    next();
 });
 
-app.get('/organizations', async (req, res) => {
-    const title = 'Organizations';
-    res.render('organizations', { title });
+// Routes
+app.get('/', (req, res) => {
+    res.render('home', { title: 'Home' });
 });
 
-app.get('/projects', async (req, res) => {
-    const title = 'Service Projects';
-    res.render('projects', { title });
+app.get('/organizations', (req, res) => {
+    res.render('organizations', { title: 'Organizations' });
 });
 
-app.get('/categories', async (req, res) => {
-    const title = 'Categories';
-    res.render('categories', { title });
+app.get('/api/organizations', async (req, res, next) => {
+    try {
+        const organizations = await getOrganizations();
+        res.json(organizations);
+    } catch (err) {
+        next(err);
+    }
+});
+
+app.get('/projects', (req, res) => {
+    res.render('projects', { title: 'Service Projects' });
+});
+
+app.get('/categories', (req, res) => {
+    res.render('categories', { title: 'Categories' });
+});
+
+// 404 handler: runs only if no route above matched
+app.use((req, res) => {
+    res.status(404).send('Page not found');
+});
+
+// Error handler: must be last, with four parameters
+app.use((err, req, res, next) => {
+    console.error(err);
+    if (req.path.startsWith('/api/')) {
+        return res.status(500).json({ error: 'Something went wrong' });
+    }
+    res.status(500).send('Something went wrong');
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running at http://127.0.0.1:${PORT}`);
-  console.log(`Environment: ${NODE_ENV}`);
+    console.log(`Server is running at http://127.0.0.1:${PORT}`);
+    console.log(`Environment: ${NODE_ENV}`);
 });
-
-// Set EJS as the templating engine
-app.set('view engine', 'ejs');
-
-// Tell Express where to find your templates
-app.set('views', path.join(__dirname, 'src/views'));

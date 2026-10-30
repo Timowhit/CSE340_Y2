@@ -1,23 +1,31 @@
 <%- include('partials/head') %>
 
-<body>
-    <%- include('partials/header') %>
+    <body>
+        <%- include('partials/header') %>
 
-    <main>
-        <h1><%= locals.title || 'CSE 340 Service Network' %></h1> 
-        <h2>Our Partner Organizations</h2>
-        <p>Here are a few of our appreciated business partners:</p>
-        <ul>
-            <li><img src="/images/brightfuture-logo.png" alt="BrightFuture Builders logo"><strong>BrightFuture
-                    Builders</strong>: info@brightfuture.org</li>
-            <li><img src="/images/greenharvest-logo.png" alt="GreenHarvest Growers logo"><strong>GreenHarvest
-                    Growers</strong>: contact@greenharvest.org</li>
-            <li><img src="/images/unityserve-logo.png" alt="UnityServe Volunteers logo"><strong>UnityServe
-                    Volunteers</strong>: hello@unityserve.org</li>
-        </ul>
-    </main>
+            <main>
+                <h1>
+                    <%= locals.title || 'CSE 340 Service Network' %>
+                </h1>
+                <h2>Our Partner Organizations</h2>
+                <p>Here are a few of our appreciated business partners:</p>
+                <ul id="org-list" aria-busy="true" aria-live="polite">
+                    <% for (let i=0; i < 3; i++) { %>
+                        <li class="skeleton-card" aria-hidden="true">
+                            <span class="sk sk-logo"></span>
+                            <span class="sk sk-line sk-line--title"></span>
+                            <span class="sk sk-line sk-line--text"></span>
+                        </li>
+                        <% } %>
+                </ul>
+                <noscript>
+                    <p>Please enable JavaScript to see the organizations.</p>
+                </noscript>
+            </main>
 
-    <%- include('partials/footer') %>
-</body>
+            <script src="/js/organizations.js" defer></script>
 
-</html>
+            <%- include('partials/footer') %>
+    </body>
+
+    </html>
