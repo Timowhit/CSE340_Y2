@@ -1,7 +1,10 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import { getOrganizations } from './src/models/organizations.js';
+import { getAllOrganizations } from './src/models/organizations.js';
+import { getAllCategories } from './src/models/categories.js';
+import { testConnection } from './src/models/db.js';
+
 
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
 const PORT = process.env.PORT || 3000;
@@ -27,14 +30,11 @@ app.get('/', (req, res) => {
     res.render('home', { title: 'Home' });
 });
 
-app.get('/organizations', (req, res) => {
-    res.render('organizations', { title: 'Organizations' });
-});
-
-app.get('/api/organizations', async (req, res, next) => {
+app.get('/organizations', async (req, res, next) => {
     try {
-        const organizations = await getOrganizations();
-        res.json(organizations);
+        const organizations = await getAllOrganizations();
+        const title = 'Our Partner Organizations';
+        res.render('organizations', { title, organizations });
     } catch (err) {
         next(err);
     }
@@ -44,8 +44,14 @@ app.get('/projects', (req, res) => {
     res.render('projects', { title: 'Service Projects' });
 });
 
-app.get('/categories', (req, res) => {
-    res.render('categories', { title: 'Categories' });
+app.get('/categories', async (req, res, next) => {
+    try {
+        const categories = await getAllCategories();
+        const title = 'Categories';
+        res.render('categories', { title, categories });
+    } catch (err) {
+        next(err);
+    }
 });
 
 // 404 handler: runs only if no route above matched
@@ -62,7 +68,12 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something went wrong');
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+  try {
+    await testConnection();
     console.log(`Server is running at http://127.0.0.1:${PORT}`);
     console.log(`Environment: ${NODE_ENV}`);
+  } catch (error) {
+    console.error('Error connecting to the database:', error);
+  }
 });

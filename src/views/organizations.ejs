@@ -9,14 +9,14 @@
                 </h1>
                 <h2>Our Partner Organizations</h2>
                 <p>Here are a few of our appreciated business partners:</p>
-                <ul id="org-list" aria-busy="true" aria-live="polite">
-                    <% for (let i=0; i < 3; i++) { %>
-                        <li class="skeleton-card" aria-hidden="true">
-                            <span class="sk sk-logo"></span>
-                            <span class="sk sk-line sk-line--title"></span>
-                            <span class="sk sk-line sk-line--text"></span>
+                <ul>
+                    <% organizations.forEach(organization=> { %>
+                        <li><img src="/images/<%= organization.logo_filename %>"
+                                alt="<%= organization.name %> logo"><strong>
+                                <%= organization.name %>
+                            </strong>: <%= organization.contact_email %>
                         </li>
-                        <% } %>
+                        <% }); %>
                 </ul>
                 <noscript>
                     <p>Please enable JavaScript to see the organizations.</p>
