@@ -1,9 +1,11 @@
 import {
     getAllCategories,
-    getCategoryById,
+    getCategoryDetails,
     createCategory,
     updateCategory
 } from '../models/categories.js';
+import { getProjectsByCategoryId } from '../models/projects.js';
+import { parseId } from './parseId.js';
 
 const NAME_MIN = 3;
 const NAME_MAX = 100;
@@ -33,16 +35,25 @@ const validateCategoryName = (rawName) => {
     return { name, errors };
 };
 
-/** Parses a route param into a positive integer, or null if invalid. */
-const parseId = (param) => {
-    const id = Number(param);
-    return Number.isInteger(id) && id > 0 ? id : null;
-};
-
-const showCategories = async (req, res, next) => {
+const showCategoriesPage = async (req, res, next) => {
     try {
         const categories = await getAllCategories();
         res.render('categories', { title: 'Categories', categories });
+    } catch (err) {
+        next(err);
+    }
+};
+
+const showCategoryDetailsPage = async (req, res, next) => {
+    try {
+        const id = parseId(req.params.id);
+        if (id === null) return next();
+
+        const category = await getCategoryDetails(id);
+        if (!category) return next();
+
+        const projects = await getProjectsByCategoryId(id);
+        res.render('category', { title: category.name, category, projects });
     } catch (err) {
         next(err);
     }
@@ -88,7 +99,7 @@ const processNewCategory = async (req, res, next) => {
 const showEditCategoryForm = async (req, res, next) => {
     try {
         const id = parseId(req.params.id);
-        const category = id === null ? null : await getCategoryById(id);
+        const category = id === null ? null : await getCategoryDetails(id);
 
         // Calling next() with no error falls through to the 404 handler
         if (!category) return next();
@@ -137,7 +148,8 @@ const processEditCategory = async (req, res, next) => {
 };
 
 export {
-    showCategories,
+    showCategoriesPage,
+    showCategoryDetailsPage,
     showNewCategoryForm,
     processNewCategory,
     showEditCategoryForm,

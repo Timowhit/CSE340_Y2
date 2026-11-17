@@ -19,7 +19,7 @@ const getAllCategories = async () => {
  * @param {number} id - The category_id to look up.
  * @returns {Promise<{category_id: number, name: string}|null>} The category, or null if not found.
  */
-const getCategoryById = async (id) => {
+const getCategoryDetails = async (id) => {
     const query = `
         SELECT category_id, name
         FROM public.categories
@@ -27,6 +27,23 @@ const getCategoryById = async (id) => {
     `;
     const result = await db.query(query, [id]);
     return result.rows[0] ?? null;
+};
+
+/**
+ * All categories assigned to one project (via the project_categories junction table).
+ * @param {number} projectId - The project_id to look up.
+ * @returns {Promise<Array<{category_id: number, name: string}>>} Alphabetical by name.
+ */
+const getCategoriesByProjectId = async (projectId) => {
+    const query = `
+        SELECT c.category_id, c.name
+        FROM public.categories c
+        JOIN public.project_categories pc ON pc.category_id = c.category_id
+        WHERE pc.project_id = $1
+        ORDER BY c.name ASC;
+    `;
+    const result = await db.query(query, [projectId]);
+    return result.rows;
 };
 
 /**
@@ -61,4 +78,10 @@ const updateCategory = async (id, name) => {
     return result.rows[0] ?? null;
 };
 
-export { getAllCategories, getCategoryById, createCategory, updateCategory };
+export {
+    getAllCategories,
+    getCategoryDetails,
+    getCategoriesByProjectId,
+    createCategory,
+    updateCategory
+};
