@@ -49,6 +49,8 @@
     --red: #ea4335;
     --yellow: #fbbc04;
     --green: #34a853;
+    --danger: #b3261b;
+    --on-accent: #ffffff;
 
     /* Gradient used on display headings */
     --grad-a: #1a4b78;
@@ -90,6 +92,8 @@
         --accent: #8ab4f8;
         --accent-strong: #aecbfa;
         --accent-soft: rgb(138 180 248 / 0.16);
+        --danger: #f2b8b5;
+        --on-accent: #202124;
 
         --grad-a: #aecbfa;
         --grad-b: #8ab4f8;
@@ -509,6 +513,107 @@ main li:not(:has(> img)):nth-child(4n + 2)::before { background: var(--red); }
 main li:not(:has(> img)):nth-child(4n + 3)::before { background: var(--yellow); color: #202124; }
 main li:not(:has(> img)):nth-child(4n + 4)::before { background: var(--green); }
 
+/* --------------------------------------------------------------------------
+   7c. Forms + buttons (category create/edit)
+   -------------------------------------------------------------------------- */
+.category-form {
+    display: grid;
+    gap: 8px;
+    max-width: 560px;
+    margin-top: clamp(28px, 4vw, 40px);
+}
+
+.category-form label {
+    color: var(--text);
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
+.category-form input[type="text"] {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 16px;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font: inherit;
+    transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.category-form input[type="text"]:hover {
+    border-color: var(--text-muted);
+}
+
+.category-form input[aria-invalid="true"] {
+    border-color: var(--danger);
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.category-form button,
+a.button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 24px;
+    background: var(--accent);
+    color: var(--on-accent);
+    border: 0;
+    border-radius: var(--radius-pill);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.category-form button:hover,
+a.button:hover {
+    background: var(--accent-strong);
+    color: var(--on-accent);
+    box-shadow: var(--shadow-sm);
+}
+
+.form-errors {
+    max-width: 560px;
+    margin-top: clamp(28px, 4vw, 40px);
+    padding: 16px 20px;
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+    color: var(--text);
+}
+
+.form-errors p {
+    margin: 0;
+}
+
+.form-errors p + p {
+    margin-top: 6px;
+}
+
+.form-errors strong {
+    color: var(--danger);
+}
+
+main li .row-action {
+    margin-left: 12px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+}
+
+@media (max-width: 640px) {
+    .form-actions {
+        gap: 12px;
+    }
+}
 
 /* --------------------------------------------------------------------------
    8. Footer

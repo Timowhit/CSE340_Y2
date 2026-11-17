@@ -18,6 +18,7 @@ app.set('views', path.join(__dirname, 'src/views'));
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: true })); // parses HTML form POST bodies into req.body
 
 app.use((req, res, next) => {
     res.locals.currentPath = req.path;

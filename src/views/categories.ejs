@@ -1,21 +1,19 @@
 <%- include('partials/head') %>
+<%- include('partials/header') %>
 
-<body>
-    <%- include('partials/header') %>
+<main>
+    <h1><%= locals.title || 'CSE 340 Service Network' %></h1>
+    <h2>Categories</h2>
+    <p><a class="button" href="/new-category">Add a category</a></p>
+    <ul>
+        <% categories.forEach(category => { %>
+            <li>
+                <strong><%= category.name %></strong>
+                <a class="row-action" href="/edit-category/<%= category.category_id %>"
+                   aria-label="Edit <%= category.name %>">Edit</a>
+            </li>
+        <% }); %>
+    </ul>
+</main>
 
-    <main>
-        <h1>
-            <%= locals.title || 'CSE 340 Service Network' %>
-        </h1>
-        <h2>Categories</h2>
-        <ul>
-            <% categories.forEach(category => { %>
-                <li><a href="/category/<%= category.category_id %>"><strong><%= category.name %></strong></a></li>
-            <% }); %>
-        </ul>
-    </main>
-
-    <%- include('partials/footer') %>
-</body>
-
-</html>
+<%- include('partials/footer') %>
