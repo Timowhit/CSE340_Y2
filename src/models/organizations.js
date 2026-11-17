@@ -11,8 +11,6 @@ const getAllOrganizations = async() => {
     return result.rows;
 }
 
-export {getAllOrganizations} 
-
 /**
  * Retrieves one organization by id.
  * @param {number} id - organization_id

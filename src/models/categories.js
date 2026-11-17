@@ -11,8 +11,6 @@ const getAllCategories = async() => {
     return result.rows;
 }
 
-export {getAllCategories} 
-
 /**
  * @param {number} id - category_id
  * @returns {Promise<Object|null>} { category_id, name } or null
