@@ -1,8 +1,7 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import { getAllOrganizations } from './src/models/organizations.js';
-import { getAllCategories } from './src/models/categories.js';
+import router from './src/routes/index.js';
 import { testConnection } from './src/models/db.js';
 
 
@@ -26,46 +25,18 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.get('/', (req, res) => {
-    res.render('home', { title: 'Home' });
-});
+app.use(router);
 
-app.get('/organizations', async (req, res, next) => {
-    try {
-        const organizations = await getAllOrganizations();
-        const title = 'Our Partner Organizations';
-        res.render('organizations', { title, organizations });
-    } catch (err) {
-        next(err);
-    }
-});
-
-app.get('/projects', (req, res) => {
-    res.render('projects', { title: 'Service Projects' });
-});
-
-app.get('/categories', async (req, res, next) => {
-    try {
-        const categories = await getAllCategories();
-        const title = 'Categories';
-        res.render('categories', { title, categories });
-    } catch (err) {
-        next(err);
-    }
-});
-
-// 404 handler: runs only if no route above matched
+// 404 handler: runs only if no route matched
 app.use((req, res) => {
-    res.status(404).send('Page not found');
+    res.status(404).render('errors/404', { title: 'Page Not Found' });
 });
 
 // Error handler: must be last, with four parameters
 app.use((err, req, res, next) => {
     console.error(err);
-    if (req.path.startsWith('/api/')) {
-        return res.status(500).json({ error: 'Something went wrong' });
-    }
-    res.status(500).send('Something went wrong');
+    if (res.headersSent) return next(err);
+    res.status(500).render('errors/500', { title: 'Server Error' });
 });
 
 app.listen(PORT, async () => {

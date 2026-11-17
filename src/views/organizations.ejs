@@ -11,10 +11,9 @@
                 <p>Here are a few of our appreciated business partners:</p>
                 <ul>
                     <% organizations.forEach(organization=> { %>
-                        <li><img src="/images/<%= organization.logo_filename %>"
-                                alt="<%= organization.name %> logo"><strong>
-                                <%= organization.name %>
-                            </strong>: <%= organization.contact_email %>
+                        <li>
+                            <img src="/images/<%= organization.logo_filename %>" alt="<%= organization.name %> logo">
+                            <a href="/organization/<%= organization.organization_id %>"><strong><%= organization.name %></strong></a>: <%= organization.contact_email %>
                         </li>
                         <% }); %>
                 </ul>

@@ -4,14 +4,22 @@
     <%- include('partials/header') %>
 
     <main>
-        <h1><%= locals.title || 'CSE 340 Service Network' %></h1> 
-        <h2>Upcoming Service Projects</h2>
+    <h1><%= locals.title || 'CSE 340 Service Network' %></h1>
+    <h2>Upcoming Service Projects</h2>
+    <% if (projects.length === 0) { %>
+        <p>No upcoming projects right now. Check back soon!</p>
+    <% } else { %>
         <ul>
-            <li>Park Cleanup - Join us to clean up local parks and make them beautiful!</li>
-            <li>Food Drive - Help collect and distribute food to those in need.</li>
-            <li>Community Tutoring - Volunteer to tutor students in various subjects.</li>
+            <% projects.forEach(project => { %>
+                <li>
+                    <a href="/project/<%= project.project_id %>"><strong><%= project.title %></strong></a><br>
+                    <%= project.project_date %> ·
+                    <a href="/organization/<%= project.organization_id %>"><%= project.organization_name %></a>
+                </li>
+            <% }); %>
         </ul>
-    </main>
+    <% } %>
+</main>
 
     <%- include('partials/footer') %>
 </body>
