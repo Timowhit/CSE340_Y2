@@ -11,9 +11,18 @@ import { Pool } from 'pg';
  * The connection string format is:
  * postgresql://username:password@host:port/database
  */
+
+// Strict by default. DB_CA verifies against your provider's CA certificate.
+// DB_SSL_INSECURE=true keeps encryption but skips certificate verification.
+const ssl = process.env.DB_CA
+    ? { ca: process.env.DB_CA.replace(/\\n/g, '\n') }
+    : process.env.DB_SSL_INSECURE === 'true'
+        ? { rejectUnauthorized: false }
+        : true;
+
 const pool = new Pool({
     connectionString: process.env.DB_URL,
-    ssl: true
+    ssl
 });
 
 /**
