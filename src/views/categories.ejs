@@ -4,6 +4,7 @@
 <main>
     <h1><%= locals.title || 'CSE 340 Service Network' %></h1>
     <h2>Categories</h2>
+    <%- include('partials/flash') %>
     <p><a class="button" href="/new-category">Add a category</a></p>
     <ul>
         <% categories.forEach(category => { %>

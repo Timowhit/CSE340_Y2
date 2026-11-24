@@ -86,7 +86,8 @@ const processNewCategory = async (req, res, next) => {
 
     try {
         await createCategory(name);
-        res.redirect('/categories');
+            req.session.flash = `Category "${name}" created.`;
+            res.redirect('/categories');
     } catch (err) {
         if (err.code === UNIQUE_VIOLATION) {
             errors.push('A category with that name already exists.');
@@ -137,6 +138,7 @@ const processEditCategory = async (req, res, next) => {
     try {
         const updated = await updateCategory(id, name);
         if (!updated) return next(); // category no longer exists -> 404
+        req.session.flash = `Category "${updated.name}" updated.`;
         res.redirect('/categories');
     } catch (err) {
         if (err.code === UNIQUE_VIOLATION) {

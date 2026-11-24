@@ -603,6 +603,20 @@ a.button:hover {
     color: var(--danger);
 }
 
+.flash {
+    max-width: 560px;
+    margin-top: clamp(28px, 4vw, 40px);
+    padding: 16px 20px;
+    border: 1px solid var(--green);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--green) 10%, transparent);
+    color: var(--text);
+}
+
+.flash p {
+    margin: 0;
+}
+
 main li .row-action {
     margin-left: 12px;
     font-size: 0.9375rem;

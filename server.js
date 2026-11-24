@@ -1,4 +1,5 @@
 import express from 'express';
+import session from 'express-session';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import router from './src/routes/index.js';
@@ -12,6 +13,11 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+
+if (!process.env.SESSION_SECRET) {
+    throw new Error('SESSION_SECRET is not set. Add it to your environment (.env in development).');
+}
+
 // Templating
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src/views'));
@@ -20,8 +26,24 @@ app.set('views', path.join(__dirname, 'src/views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true })); // parses HTML form POST bodies into req.body
 
+// Sessions: only the session ID lives in the cookie; the data stays on the server.
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,            // don't re-save sessions that didn't change
+    saveUninitialized: false, // don't create a session (or cookie) until we store something
+    cookie: {
+        httpOnly: true,       // JavaScript in the page can't read the cookie
+        sameSite: 'lax',
+        secure: NODE_ENV === 'production'
+    }
+}));
+
 app.use((req, res, next) => {
     res.locals.currentPath = req.path;
+    // Flash = read once, then delete. Moving it to res.locals makes it
+    // available to every view as `locals.flash`.
+    res.locals.flash = req.session.flash ?? null;
+    delete req.session.flash;
     next();
 });
 
