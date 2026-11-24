@@ -24,6 +24,7 @@ app.set('views', path.join(__dirname, 'src/views'));
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')));
+app.get('/favicon.ico', (req, res) => res.status(204).end()); // keeps favicon requests from consuming the flash
 app.use(express.urlencoded({ extended: true })); // parses HTML form POST bodies into req.body
 
 // Sessions: only the session ID lives in the cookie; the data stays on the server.

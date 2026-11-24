@@ -86,8 +86,8 @@ const processNewCategory = async (req, res, next) => {
 
     try {
         await createCategory(name);
-            req.session.flash = `Category "${name}" created.`;
-            res.redirect('/categories');
+        req.session.flash = `Category "${name}" created.`;
+        res.redirect('/categories');
     } catch (err) {
         if (err.code === UNIQUE_VIOLATION) {
             errors.push('A category with that name already exists.');
