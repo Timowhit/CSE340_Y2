@@ -13,6 +13,10 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Render (and most hosts) terminate HTTPS at a proxy. Without this, Express thinks the
+// request is insecure and express-session refuses to set the `secure` cookie.
+if (NODE_ENV === 'production') app.set('trust proxy', 1);
+
 
 if (!process.env.SESSION_SECRET) {
     throw new Error('SESSION_SECRET is not set. Add it to your environment (.env in development).');

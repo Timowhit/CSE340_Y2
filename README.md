@@ -1,6 +1,6 @@
 # CSE 340 Service Network
 
-A server-rendered web app that connects volunteers with service organizations and projects. Browse partner organizations, see upcoming service projects, filter projects by category, and create or rename categories.
+A server-rendered web app that connects volunteers with service organizations and projects. Browse partner organizations, see upcoming service projects, filter projects by category, and create or edit organizations, projects and categories.
 
 Built for BYU-Idaho CSE 340.
 
@@ -20,8 +20,8 @@ There is no frontend framework, bundler, or TypeScript.
 ## Features
 
 - **Home** page with the network's mission and logo
-- **Organizations**: list of partner organizations, plus a detail page for each with its contact email and projects
-- **Projects**: the next five upcoming projects (soonest first), plus a detail page with date, location, organization, and category tags
+- **Organizations**: list of partner organizations, a detail page for each with its contact email and projects, and forms to **create** and **edit** organizations
+- **Projects**: the next five upcoming projects (soonest first), a detail page with date, location, organization, and category tags, and forms to **create** and **edit** projects (organization picker, date validation)
 - **Categories**: list of categories, a detail page listing the projects in each, and forms to **create** and **edit** categories (server-side validation, duplicate-name detection)
 - Rendered **404** and **500** error pages
 - Light and dark themes, responsive layout, keyboard-visible focus, and reduced-motion support
@@ -94,8 +94,16 @@ When it starts correctly you should see `Database connection successful` followe
 | GET    | `/`                   | Home page                                    |
 | GET    | `/organizations`      | All partner organizations                    |
 | GET    | `/organization/:id`   | One organization and its projects            |
+| GET    | `/new-organization`   | New organization form                        |
+| POST   | `/new-organization`   | Create an organization                       |
+| GET    | `/edit-organization/:id` | Edit organization form                    |
+| POST   | `/edit-organization/:id` | Update an organization                    |
 | GET    | `/projects`           | Next 5 upcoming projects                     |
 | GET    | `/project/:id`        | One project with its organization/categories |
+| GET    | `/new-project`        | New project form                             |
+| POST   | `/new-project`        | Create a project                             |
+| GET    | `/edit-project/:id`   | Edit project form                            |
+| POST   | `/edit-project/:id`   | Update a project                             |
 | GET    | `/categories`         | All categories                               |
 | GET    | `/category/:id`       | One category and its projects                |
 | GET    | `/new-category`       | New category form                            |
@@ -154,7 +162,7 @@ Deleting an organization cascades to its projects. Deleting a project or categor
 ## Security Notes
 
 - All SQL is parameterized.
-- Server-side validation on category forms (3 to 100 characters, trimmed).
+- Server-side validation on every create/edit form (values trimmed; required fields, length limits, email format, a plain-file-name check on logo names, real-calendar-date check on project dates). Client-side `required`/`maxlength`/`type` attributes mirror these, but the server never trusts them.
 - Errors show a generic message to users; details go to the server log only.
 - **Not yet implemented:** authentication, CSRF protection, security headers (e.g. `helmet`), and rate limiting. The category create/edit routes are currently open to anyone who can reach the server, so add these before exposing the app publicly.
 

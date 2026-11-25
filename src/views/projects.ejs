@@ -6,6 +6,7 @@
     <main>
     <h1><%= locals.title || 'CSE 340 Service Network' %></h1>
     <h2>Upcoming Service Projects</h2>
+    <p><a class="button" href="/new-project">Add a project</a></p>
     <% if (projects.length === 0) { %>
         <p>No upcoming projects right now. Check back soon!</p>
     <% } else { %>
@@ -15,6 +16,8 @@
                     <a href="/project/<%= project.project_id %>"><strong><%= project.title %></strong></a><br>
                     <%= project.project_date %> ·
                     <a href="/organization/<%= project.organization_id %>"><%= project.organization_name %></a>
+                    <a class="row-action" href="/edit-project/<%= project.project_id %>"
+                       aria-label="Edit <%= project.title %>">Edit</a>
                 </li>
             <% }); %>
         </ul>

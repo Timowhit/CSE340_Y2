@@ -15,7 +15,8 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "audit": "npm audit fix --force",
+    "audit": "npm audit",
+    "audit fix": "npm audit fix --force",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon",
     "start": "node --env-file-if-exists=.env server.js"
@@ -27,6 +28,6 @@
     "pg": "^8.23.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.11"
   }
 }

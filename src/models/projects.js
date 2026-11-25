@@ -23,6 +23,7 @@ const getUpcomingProjects = async (limit = 5) => {
 
 /**
  * One project with its organization's name.
+ * project_date is display-formatted; project_date_iso (YYYY-MM-DD) is for form inputs.
  * @param {number} id - project_id
  * @returns {Promise<Object|null>}
  */
@@ -30,6 +31,7 @@ const getProjectDetails = async (id) => {
     const query = `
         SELECT p.project_id, p.title, p.description, p.location,
                to_char(p.project_date, 'FMMon FMDD, YYYY') AS project_date,
+               to_char(p.project_date, 'YYYY-MM-DD') AS project_date_iso,
                o.organization_id, o.name AS organization_name
         FROM projects p
         JOIN organization o ON o.organization_id = p.organization_id
@@ -74,9 +76,45 @@ const getProjectsByCategoryId = async (categoryId) => {
     return result.rows;
 };
 
+/**
+ * Inserts a new service project.
+ * @param {{title: string, description: string, location: string, project_date: string, organization_id: number}} values - Already validated.
+ * @returns {Promise<{project_id: number, title: string}>} The created project.
+ * @throws {Error} With code 23503 if organization_id does not exist.
+ */
+const createProject = async ({ title, description, location, project_date, organization_id }) => {
+    const query = `
+        INSERT INTO projects (organization_id, title, description, location, project_date)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING project_id, title;
+    `;
+    const result = await db.query(query, [organization_id, title, description, location, project_date]);
+    return result.rows[0];
+};
+
+/**
+ * Updates a service project.
+ * @param {number} id - The project_id to update.
+ * @param {{title: string, description: string, location: string, project_date: string, organization_id: number}} values - Already validated.
+ * @returns {Promise<{project_id: number, title: string}|null>} The updated project, or null if not found.
+ * @throws {Error} With code 23503 if organization_id does not exist.
+ */
+const updateProject = async (id, { title, description, location, project_date, organization_id }) => {
+    const query = `
+        UPDATE projects
+        SET organization_id = $1, title = $2, description = $3, location = $4, project_date = $5
+        WHERE project_id = $6
+        RETURNING project_id, title;
+    `;
+    const result = await db.query(query, [organization_id, title, description, location, project_date, id]);
+    return result.rows[0] ?? null;
+};
+
 export {
     getUpcomingProjects,
     getProjectDetails,
     getProjectsByOrganizationId,
-    getProjectsByCategoryId
+    getProjectsByCategoryId,
+    createProject,
+    updateProject
 };

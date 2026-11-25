@@ -1,0 +1,8 @@
+<% if (errors.length > 0) { %>
+    <div class="form-errors" role="alert" id="form-errors">
+        <p><strong>Please fix the following:</strong></p>
+        <% errors.forEach(error => { %>
+            <p><%= error.message %></p>
+        <% }); %>
+    </div>
+<% } %>

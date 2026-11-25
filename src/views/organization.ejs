@@ -6,8 +6,10 @@
     <main>
         <h1>Organization</h1>
         <h2><%= organization.name %></h2>
+        <%- include('partials/flash') %>
         <p><%= organization.description %></p>
         <p>Contact: <a href="mailto:<%= organization.contact_email %>"><%= organization.contact_email %></a></p>
+        <p><a class="button" href="/edit-organization/<%= organization.organization_id %>">Edit organization</a></p>
 
         <% if (projects.length === 0) { %>
             <p>This organization has no service projects yet.</p>

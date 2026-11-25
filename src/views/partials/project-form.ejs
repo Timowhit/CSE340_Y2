@@ -1,0 +1,74 @@
+<%- include('form-errors') %>
+
+<% const invalid = (field) => errors.some(error => error.field === field); %>
+<form class="record-form" method="post" action="<%= formAction %>">
+    <div class="form-field">
+        <label for="title">Project title</label>
+        <input
+            type="text"
+            id="title"
+            name="title"
+            value="<%= values.title %>"
+            required
+            maxlength="150"
+            <%- invalid('title') ? 'aria-invalid="true" aria-describedby="form-errors"' : '' %>>
+    </div>
+
+    <div class="form-field">
+        <label for="description">Description</label>
+        <textarea
+            id="description"
+            name="description"
+            rows="6"
+            required
+            maxlength="2000"
+            <%- invalid('description') ? 'aria-invalid="true" aria-describedby="form-errors"' : '' %>><%= values.description %></textarea>
+    </div>
+
+    <div class="form-field">
+        <label for="location">Location</label>
+        <input
+            type="text"
+            id="location"
+            name="location"
+            value="<%= values.location %>"
+            required
+            maxlength="200"
+            <%- invalid('location') ? 'aria-invalid="true" aria-describedby="form-errors"' : '' %>>
+    </div>
+
+    <div class="form-field">
+        <label for="project_date">Project date</label>
+        <input
+            type="date"
+            id="project_date"
+            name="project_date"
+            value="<%= values.project_date %>"
+            required
+            min="1900-01-01"
+            max="2100-12-31"
+            <%- invalid('project_date') ? 'aria-invalid="true" aria-describedby="form-errors"' : '' %>>
+    </div>
+
+    <div class="form-field">
+        <label for="organization_id">Organization</label>
+        <select
+            id="organization_id"
+            name="organization_id"
+            required
+            <%- invalid('organization_id') ? 'aria-invalid="true" aria-describedby="form-errors"' : '' %>>
+            <option value="">Choose an organization</option>
+            <% organizations.forEach(organization => { %>
+                <option value="<%= organization.organization_id %>"
+                    <%- String(organization.organization_id) === values.organization_id ? 'selected' : '' %>>
+                    <%= organization.name %>
+                </option>
+            <% }); %>
+        </select>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit"><%= submitLabel %></button>
+        <a href="<%= cancelHref %>">Cancel</a>
+    </div>
+</form>
