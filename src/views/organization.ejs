@@ -9,7 +9,9 @@
         <%- include('partials/flash') %>
         <p><%= organization.description %></p>
         <p>Contact: <a href="mailto:<%= organization.contact_email %>"><%= organization.contact_email %></a></p>
+        <% if (locals.isAdmin) { %>
         <p><a class="button" href="/edit-organization/<%= organization.organization_id %>">Edit organization</a></p>
+        <% } %>
 
         <% if (projects.length === 0) { %>
             <p>This organization has no service projects yet.</p>
@@ -28,4 +30,4 @@
     <%- include('partials/footer') %>
 </body>
 
-</html>
+</html>

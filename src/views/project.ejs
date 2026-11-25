@@ -14,7 +14,9 @@
             <strong>Organization:</strong>
             <a href="/organization/<%= project.organization_id %>"><%= project.organization_name %></a>
         </p>
+        <% if (locals.isAdmin) { %>
         <p><a class="button" href="/edit-project/<%= project.project_id %>">Edit project</a></p>
+        <% } %>
         <% if (categories.length > 0) { %>
             <div class="tags" aria-label="Categories">
                 <% categories.forEach(category => { %>
@@ -27,4 +29,4 @@
     <%- include('partials/footer') %>
 </body>
 
-</html>
+</html>

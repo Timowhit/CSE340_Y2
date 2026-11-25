@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import router from './src/routes/index.js';
 import { testConnection } from './src/models/db.js';
+import { setCurrentUser } from './src/middleware/auth.js';
 
 
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
@@ -52,6 +53,9 @@ app.use((req, res, next) => {
     next();
 });
 
+// Makes `user` and `isAdmin` available to every view (header links, Add/Edit buttons)
+app.use(setCurrentUser);
+
 // Routes
 app.use(router);
 
@@ -75,4 +79,4 @@ app.listen(PORT, async () => {
   } catch (error) {
     console.error('Error connecting to the database:', error);
   }
-});
+});

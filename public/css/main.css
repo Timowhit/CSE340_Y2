@@ -260,6 +260,33 @@ nav a[aria-current="page"] {
     font-weight: 600;
 }
 
+/* Log out is a real button (it changes state, so it must be a POST), styled like the nav links */
+nav form {
+    margin: 0;
+}
+
+nav button {
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+nav button:hover {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+}
+
 
 /* --------------------------------------------------------------------------
    4. Page layout
@@ -570,6 +597,7 @@ main li:not(:has(> img)):nth-child(4n + 4)::before { background: var(--green); }
 
 .record-form input[type="text"],
 .record-form input[type="email"],
+.record-form input[type="password"],
 .record-form input[type="date"],
 .record-form select,
 .record-form textarea {
@@ -584,6 +612,7 @@ main li:not(:has(> img)):nth-child(4n + 4)::before { background: var(--green); }
 
 .record-form input[type="text"],
 .record-form input[type="email"],
+.record-form input[type="password"],
 .record-form input[type="date"],
 .record-form select {
     min-height: 48px;
@@ -775,7 +804,8 @@ footer p {
         margin-right: 8px;
     }
 
-    nav a {
+    nav a,
+    nav button {
         padding: 0 14px;
         height: 38px;
     }
@@ -857,4 +887,4 @@ footer p {
 
 /* ==========================================================================
    End of main.css
-   ========================================================================== */
+   ========================================================================== */

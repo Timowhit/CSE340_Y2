@@ -80,3 +80,25 @@ JOIN categories c ON
     (p.title = 'After-School Tutoring'    AND c.name = 'Education') OR
     (p.title = 'Neighborhood Food Drive'  AND c.name = 'Community Support') OR
     (p.title = 'Neighborhood Food Drive'  AND c.name = 'Health & Wellness');
+
+
+-- ============================================
+-- Users and roles (login + admin-only routes)
+-- Safe to run on its own against an existing database: it only creates
+-- the table if missing and never drops or changes other tables.
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS users (
+    user_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,   -- stored lower-case; the login form lower-cases input
+    password_hash TEXT NOT NULL,          -- "<saltHex>:<scryptKeyHex>", see src/utils/password.js
+    role VARCHAR(20) NOT NULL DEFAULT 'volunteer' CHECK (role IN ('admin', 'volunteer'))
+);
+
+-- DEVELOPMENT-ONLY sample accounts (passwords are listed in the README).
+-- Delete these rows or change their passwords before the app is reachable by anyone else.
+INSERT INTO users (name, email, password_hash, role) VALUES
+    ('Site Admin', 'admin@example.org', '193cd25377b42e5193e6a36a85aa8fd2:7d17f58a6d5c234b9f5e4673f2fd08f6d21436662cdf388e5c2dedb32dbf3b3d307608a4527149f839edc200e68b21ae0d3bc1ade96e3546aafdb7ee83c4fc0d', 'admin'),
+    ('Sample Volunteer', 'volunteer@example.org', 'fe1b8ed281e45885a0e9c753ced2b505:059d339a93e32e1e6987ce72137fe6f49816c46924ee4c65189a016b06e34d636a7a857dac8ec016e31abc1f9c55237a5a8ee34ba9e87d273620cc1c4d942fe7', 'volunteer')
+ON CONFLICT (email) DO NOTHING;

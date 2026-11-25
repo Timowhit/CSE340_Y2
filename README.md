@@ -55,6 +55,9 @@ The script creates and seeds:
 - `projects` (3 sample projects, linked to the first organization)
 - `categories` (4 sample categories)
 - `project_categories` (junction table linking projects and categories)
+- `users` (2 development accounts: one `admin`, one `volunteer`)
+
+**Adding login to a database that already has data:** do not re-run the whole script. Run only the `users` section at the bottom of `src/setup.sql` (it uses `CREATE TABLE IF NOT EXISTS` and `ON CONFLICT DO NOTHING`, so it is safe to run on its own and more than once).
 
 ### 3. Configure environment variables
 
@@ -92,6 +95,9 @@ When it starts correctly you should see `Database connection successful` followe
 | Method | Path                  | Description                                  |
 | ------ | --------------------- | -------------------------------------------- |
 | GET    | `/`                   | Home page                                    |
+| GET    | `/login`              | Login form                                   |
+| POST   | `/login`              | Log in (starts a session)                    |
+| POST   | `/logout`             | Log out (ends the session)                   |
 | GET    | `/organizations`      | All partner organizations                    |
 | GET    | `/organization/:id`   | One organization and its projects            |
 | GET    | `/new-organization`   | New organization form                        |
@@ -111,6 +117,8 @@ When it starts correctly you should see `Database connection successful` followe
 | GET    | `/edit-category/:id`  | Edit category form                           |
 | POST   | `/edit-category/:id`  | Update a category                            |
 
+**Admin-only routes:** every `new-*` and `edit-*` route above (both the GET form and the POST submit) is protected by `requireRole('admin')`. Visitors who are not logged in are redirected to `/login` and sent back afterwards; logged-in users without the `admin` role get the 403 page. The Add/Edit buttons and links are only rendered for admins.
+
 Route IDs are validated by `parseId` (positive 32-bit integers only). Invalid or unknown IDs fall through to the 404 page.
 
 ## Project Structure
@@ -119,20 +127,24 @@ Route IDs are validated by `parseId` (positive 32-bit integers only). Invalid or
 server.js                    # App bootstrap, middleware, error handling
 src/
   routes/index.js            # Route definitions
+  middleware/auth.js         # requireRole + setCurrentUser (exposes user/isAdmin to views)
+  utils/password.js          # scrypt password hashing (built into Node, no dependency)
   controllers/               # Parse input, call models, choose a view
     index.js
     organizations.js
     projects.js
     categories.js
+    auth.js                  # login / logout
     parseId.js
   models/                    # Data access only (all SQL lives here)
     db.js                    # Connection pool + testConnection
     organizations.js
     projects.js
     categories.js
+    users.js
   views/                     # EJS templates
     partials/                # head, header, footer, category-form
-    errors/                  # 404 and 500 pages
+    errors/                  # 403, 404 and 500 pages
   setup.sql                  # Canonical schema + seed data
 public/
   css/main.css               # Single token-driven stylesheet (light + dark)
@@ -155,6 +167,7 @@ organization (organization_id PK, name, description, contact_email, logo_filenam
 projects (project_id PK, organization_id FK, title, description, location, project_date)
 categories (category_id PK, name UNIQUE)
 project_categories (project_id FK, category_id FK, PRIMARY KEY (project_id, category_id))
+users (user_id PK, name, email UNIQUE, password_hash, role CHECK IN ('admin', 'volunteer'))
 ```
 
 Deleting an organization cascades to its projects. Deleting a project or category cascades to the junction rows. The table is named `organization` (singular) while the others are plural; this is a known inconsistency and should only be changed as a deliberate migration.
@@ -164,7 +177,9 @@ Deleting an organization cascades to its projects. Deleting a project or categor
 - All SQL is parameterized.
 - Server-side validation on every create/edit form (values trimmed; required fields, length limits, email format, a plain-file-name check on logo names, real-calendar-date check on project dates). Client-side `required`/`maxlength`/`type` attributes mirror these, but the server never trusts them.
 - Errors show a generic message to users; details go to the server log only.
-- **Not yet implemented:** authentication, CSRF protection, security headers (e.g. `helmet`), and rate limiting. The category create/edit routes are currently open to anyone who can reach the server, so add these before exposing the app publicly.
+- **Authentication and roles:** users log in with email and password (hashed with scrypt). The session stores only `{ id, name, role }`, and the session ID is regenerated on login and logout. `requireRole('admin')` guards every create/edit route. The role is read from the session, so a role change in the database takes effect the next time that user logs in.
+- **Sample accounts (development only):** `admin@example.org` / `Admin#2026-demo` and `volunteer@example.org` / `Volunteer#2026-demo`, created by `src/setup.sql`. Remove or change them before deploying.
+- **Not yet implemented:** CSRF tokens (session cookies use `SameSite=Lax`, which blocks most cross-site POSTs, but tokens are still recommended), security headers (e.g. `helmet`), and login rate limiting.
 
 ## Known Issues
 

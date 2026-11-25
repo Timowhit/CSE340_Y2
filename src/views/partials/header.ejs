@@ -5,5 +5,14 @@
         <li><a href="/organizations" <%- currentPath.startsWith('/organizations') ? 'aria-current="page"' : '' %>>Organizations</a></li>
         <li><a href="/projects" <%- currentPath.startsWith('/projects') ? 'aria-current="page"' : '' %>>Projects</a></li>
         <li><a href="/categories" <%- currentPath.startsWith('/categories') ? 'aria-current="page"' : '' %>>Categories</a></li>
+        <% if (locals.user) { %>
+        <li>
+            <form method="post" action="/logout">
+                <button type="submit" aria-label="Log out <%= user.name %>">Log out</button>
+            </form>
+        </li>
+        <% } else { %>
+        <li><a href="/login" <%- currentPath.startsWith('/login') ? 'aria-current="page"' : '' %>>Log in</a></li>
+        <% } %>
     </ul>
-</nav>
+</nav>
