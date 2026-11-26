@@ -13,10 +13,29 @@ const setCurrentUser = (req, res, next) => {
     next();
 };
 
+/** Sends an anonymous visitor to the login page and remembers where they were going. */
+const redirectToLogin = (req, res) => {
+    // Only GET requests can be replayed safely after login; a POST would lose its form data.
+    if (req.method === 'GET') req.session.returnTo = req.originalUrl;
+    req.session.flash = 'You must be logged in to access that page.';
+    res.redirect('/login');
+};
+
+/**
+ * Lets any logged-in user through; everyone else is redirected to /login.
+ * Put it before a controller in a route: router.get('/dashboard', requireLogin, showDashboard).
+ * @type {import('express').RequestHandler}
+ */
+const requireLogin = (req, res, next) => {
+    if (!req.session.user) return redirectToLogin(req, res);
+    next();
+};
+
 /**
  * Builds middleware that only lets logged-in users with one of the given roles through.
  * - Not logged in: redirects to /login (and remembers the page for after login).
- * - Logged in with the wrong role: renders the 403 page.
+ * - Logged in with the wrong role: flashes a message and redirects to /dashboard, a page
+ *   every logged-in user can open (so the redirect can never loop).
  * @param {...string} roles - One or more allowed roles, e.g. requireRole('admin').
  * @returns {import('express').RequestHandler}
  */
@@ -28,19 +47,15 @@ const requireRole = (...roles) => {
     return (req, res, next) => {
         const user = req.session.user;
 
-        if (!user) {
-            // Only GET requests can be replayed safely after login; a POST would lose its form data.
-            if (req.method === 'GET') req.session.returnTo = req.originalUrl;
-            req.session.flash = 'Please log in to continue.';
-            return res.redirect('/login');
-        }
+        if (!user) return redirectToLogin(req, res);
 
         if (!roles.includes(user.role)) {
-            return res.status(403).render('errors/403', { title: 'Access Denied' });
+            req.session.flash = 'You do not have permission to view that page.';
+            return res.redirect('/dashboard');
         }
 
         next();
     };
 };
 
-export { requireRole, setCurrentUser };
+export { requireLogin, requireRole, setCurrentUser };

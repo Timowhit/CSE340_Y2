@@ -98,6 +98,10 @@ When it starts correctly you should see `Database connection successful` followe
 | GET    | `/login`              | Login form                                   |
 | POST   | `/login`              | Log in (starts a session)                    |
 | POST   | `/logout`             | Log out (ends the session)                   |
+| GET    | `/register`           | Registration form                            |
+| POST   | `/register`           | Create a volunteer account                   |
+| GET    | `/dashboard`          | Logged-in user's name and email (login required) |
+| GET    | `/users`              | All registered users and roles (admin only)  |
 | GET    | `/organizations`      | All partner organizations                    |
 | GET    | `/organization/:id`   | One organization and its projects            |
 | GET    | `/new-organization`   | New organization form                        |
@@ -117,7 +121,7 @@ When it starts correctly you should see `Database connection successful` followe
 | GET    | `/edit-category/:id`  | Edit category form                           |
 | POST   | `/edit-category/:id`  | Update a category                            |
 
-**Admin-only routes:** every `new-*` and `edit-*` route above (both the GET form and the POST submit) is protected by `requireRole('admin')`. Visitors who are not logged in are redirected to `/login` and sent back afterwards; logged-in users without the `admin` role get the 403 page. The Add/Edit buttons and links are only rendered for admins.
+**Admin-only routes:** `/users` and every `new-*` and `edit-*` route above (both the GET form and the POST submit) are protected by `requireRole('admin')`. Visitors who are not logged in are redirected to `/login` and sent back afterwards; logged-in users without the `admin` role are redirected to `/dashboard` with a message. The Add/Edit buttons and the dashboard's "View all users" link are only rendered for admins. `/dashboard` only needs `requireLogin`, so any logged-in user can open it.
 
 Route IDs are validated by `parseId` (positive 32-bit integers only). Invalid or unknown IDs fall through to the 404 page.
 
@@ -127,7 +131,7 @@ Route IDs are validated by `parseId` (positive 32-bit integers only). Invalid or
 server.js                    # App bootstrap, middleware, error handling
 src/
   routes/index.js            # Route definitions
-  middleware/auth.js         # requireRole + setCurrentUser (exposes user/isAdmin to views)
+  middleware/auth.js         # requireLogin + requireRole + setCurrentUser (exposes user/isAdmin to views)
   utils/password.js          # scrypt password hashing (built into Node, no dependency)
   controllers/               # Parse input, call models, choose a view
     index.js
@@ -135,6 +139,7 @@ src/
     projects.js
     categories.js
     auth.js                  # login / logout
+    users.js                 # dashboard, admin users list, registration
     parseId.js
   models/                    # Data access only (all SQL lives here)
     db.js                    # Connection pool + testConnection
@@ -144,7 +149,7 @@ src/
     users.js
   views/                     # EJS templates
     partials/                # head, header, footer, category-form
-    errors/                  # 403, 404 and 500 pages
+    errors/                  # 403 (currently unused), 404 and 500 pages
   setup.sql                  # Canonical schema + seed data
 public/
   css/main.css               # Single token-driven stylesheet (light + dark)
@@ -177,9 +182,9 @@ Deleting an organization cascades to its projects. Deleting a project or categor
 - All SQL is parameterized.
 - Server-side validation on every create/edit form (values trimmed; required fields, length limits, email format, a plain-file-name check on logo names, real-calendar-date check on project dates). Client-side `required`/`maxlength`/`type` attributes mirror these, but the server never trusts them.
 - Errors show a generic message to users; details go to the server log only.
-- **Authentication and roles:** users log in with email and password (hashed with scrypt). The session stores only `{ id, name, role }`, and the session ID is regenerated on login and logout. `requireRole('admin')` guards every create/edit route. The role is read from the session, so a role change in the database takes effect the next time that user logs in.
+- **Authentication and roles:** users log in with email and password (hashed with scrypt). The session stores only `{ id, name, email, role }`, and the session ID is regenerated on login and logout. New accounts come from `/register` and are always `volunteer`; the role is never read from the form. `requireLogin` guards `/dashboard`, and `requireRole('admin')` guards `/users` and every create/edit route. The role is read from the session, so a role change in the database takes effect the next time that user logs in.
 - **Sample accounts (development only):** `admin@example.org` / `Admin#2026-demo` and `volunteer@example.org` / `Volunteer#2026-demo`, created by `src/setup.sql`. Remove or change them before deploying.
-- **Not yet implemented:** CSRF tokens (session cookies use `SameSite=Lax`, which blocks most cross-site POSTs, but tokens are still recommended), security headers (e.g. `helmet`), and login rate limiting.
+- **Not yet implemented:** CSRF tokens (session cookies use `SameSite=Lax`, which blocks most cross-site POSTs, but tokens are still recommended), security headers (e.g. `helmet`), and rate limiting on login and registration (`/register` is a public endpoint that runs the password hasher, so it can be scripted without limit).
 
 ## Known Issues
 

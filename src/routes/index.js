@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { showHomePage } from '../controllers/index.js';
 import { showLoginForm, processLogin, processLogout } from '../controllers/auth.js';
-import { requireRole } from '../middleware/auth.js';
+import { showDashboard, showUsersPage, showRegisterForm, processRegister } from '../controllers/users.js';
+import { requireLogin, requireRole } from '../middleware/auth.js';
 import {
     showOrganizationsPage,
     showOrganizationDetailsPage,
@@ -36,6 +37,10 @@ router.get('/', showHomePage);
 router.get('/login', showLoginForm);
 router.post('/login', processLogin);
 router.post('/logout', processLogout);
+router.get('/register', showRegisterForm);
+router.post('/register', processRegister);
+router.get('/dashboard', requireLogin, showDashboard);
+router.get('/users', requireAdmin, showUsersPage);
 router.get('/organizations', showOrganizationsPage);
 router.get('/organization/:id', showOrganizationDetailsPage);
 router.get('/new-organization', requireAdmin, showNewOrganizationForm);

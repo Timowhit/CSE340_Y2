@@ -1,0 +1,15 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<main>
+    <h1><%= locals.title || 'CSE 340 Service Network' %></h1>
+    <h2>Your account</h2>
+    <%- include('partials/flash') %>
+    <p>Name: <%= name %></p>
+    <p>Username: <%= email %></p>
+    <% if (locals.isAdmin) { %>
+    <p><a class="button" href="/users">View all users</a></p>
+    <% } %>
+</main>
+
+<%- include('partials/footer') %>

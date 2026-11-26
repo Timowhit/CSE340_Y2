@@ -25,14 +25,15 @@ const renderLogin = (res, status, email, errors) =>
     res.status(status).render('login', { title: 'Log In', values: { email }, errors });
 
 const showLoginForm = (req, res) => {
-    if (req.session.user) return res.redirect('/');
+    if (req.session.user) return res.redirect('/dashboard');
     renderLogin(res, 200, '', []);
 };
 
 const processLogin = async (req, res, next) => {
     try {
-        const email = readText(req.body.email).trim().toLowerCase();
-        const password = readText(req.body.password);
+        const body = req.body ?? {}; // undefined when the request is not a urlencoded form
+        const email = readText(body.email).trim().toLowerCase();
+        const password = readText(body.password);
 
         const errors = [];
         if (email.length === 0) errors.push({ field: 'email', message: 'Email is required.' });
@@ -53,9 +54,9 @@ const processLogin = async (req, res, next) => {
         await regenerateSession(req);
 
         // Store only what the app needs; never the password hash.
-        req.session.user = { id: user.user_id, name: user.name, role: user.role };
+        req.session.user = { id: user.user_id, name: user.name, email: user.email, role: user.role };
         req.session.flash = `Welcome back, ${user.name}.`;
-        res.redirect(isSafeReturnPath(returnTo) ? returnTo : '/');
+        res.redirect(isSafeReturnPath(returnTo) ? returnTo : '/dashboard');
     } catch (err) {
         next(err);
     }

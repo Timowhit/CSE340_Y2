@@ -16,4 +16,37 @@ const findUserByEmail = async (email) => {
     return result.rows[0] ?? null;
 };
 
-export { findUserByEmail };
+/**
+ * Lists every registered user for the admin users page. Never includes password hashes.
+ * @returns {Promise<Array<{user_id: number, name: string, email: string, role: string}>>}
+ *          All users, ordered by name then email.
+ */
+const getAllUsers = async () => {
+    const query = `
+        SELECT user_id, name, email, role
+        FROM public.users
+        ORDER BY name, email;
+    `;
+    const result = await db.query(query);
+    return result.rows;
+};
+
+/**
+ * Creates a new account. The role is not a parameter: the column default ('volunteer')
+ * applies, so a form can never choose its own role.
+ * @param {{name: string, email: string, passwordHash: string}} user - Already validated values;
+ *        email is trimmed and lower-cased, passwordHash comes from hashPassword.
+ * @returns {Promise<{user_id: number, name: string, email: string, role: string}>} The new user.
+ * @throws {Error} Database errors propagate; a duplicate email has `code === '23505'`.
+ */
+const createUser = async ({ name, email, passwordHash }) => {
+    const query = `
+        INSERT INTO public.users (name, email, password_hash)
+        VALUES ($1, $2, $3)
+        RETURNING user_id, name, email, role;
+    `;
+    const result = await db.query(query, [name, email, passwordHash]);
+    return result.rows[0];
+};
+
+export { findUserByEmail, getAllUsers, createUser };

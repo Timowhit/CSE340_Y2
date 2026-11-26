@@ -1,0 +1,67 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<% const invalid = (field) => errors.some((error) => error.field === field); %>
+<main>
+    <h1><%= locals.title || 'CSE 340 Service Network' %></h1>
+    <h2>Create your account</h2>
+    <%- include('partials/flash') %>
+    <%- include('partials/form-errors') %>
+
+    <form class="record-form" method="post" action="/register">
+        <div class="form-field">
+            <label for="name">Name</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                value="<%= values.name %>"
+                required
+                maxlength="100"
+                autocomplete="name"
+                <%- invalid('name') ? 'aria-invalid="true" aria-describedby="form-errors"' : '' %>>
+        </div>
+        <div class="form-field">
+            <label for="email">Email (your username)</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                value="<%= values.email %>"
+                required
+                maxlength="255"
+                autocomplete="username"
+                <%- invalid('email') ? 'aria-invalid="true" aria-describedby="form-errors"' : '' %>>
+        </div>
+        <div class="form-field">
+            <label for="password">Password (at least 8 characters)</label>
+            <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                minlength="8"
+                maxlength="200"
+                autocomplete="new-password"
+                <%- invalid('password') ? 'aria-invalid="true" aria-describedby="form-errors"' : '' %>>
+        </div>
+        <div class="form-field">
+            <label for="confirm_password">Confirm password</label>
+            <input
+                type="password"
+                id="confirm_password"
+                name="confirm_password"
+                required
+                minlength="8"
+                maxlength="200"
+                autocomplete="new-password"
+                <%- invalid('confirm_password') ? 'aria-invalid="true" aria-describedby="form-errors"' : '' %>>
+        </div>
+        <div class="form-actions">
+            <button type="submit">Create account</button>
+            <a href="/login">Already have an account? Log in</a>
+        </div>
+    </form>
+</main>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,35 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<main>
+    <h1><%= locals.title || 'CSE 340 Service Network' %></h1>
+    <h2>Everyone with an account</h2>
+    <%- include('partials/flash') %>
+    <% if (users.length === 0) { %>
+        <p>No users found.</p>
+    <% } else { %>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Registered users table">
+            <table>
+                <caption>Registered users</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Email (username)</th>
+                        <th scope="col">Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% users.forEach(registeredUser => { %>
+                        <tr>
+                            <td><%= registeredUser.name %></td>
+                            <td class="col-email"><%= registeredUser.email %></td>
+                            <td class="col-role"><%= registeredUser.role %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    <% } %>
+</main>
+
+<%- include('partials/footer') %>
