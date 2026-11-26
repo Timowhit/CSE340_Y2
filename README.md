@@ -56,8 +56,11 @@ The script creates and seeds:
 - `categories` (4 sample categories)
 - `project_categories` (junction table linking projects and categories)
 - `users` (2 development accounts: one `admin`, one `volunteer`)
+- `session` (login sessions, managed by `connect-pg-simple`)
 
-**Adding login to a database that already has data:** do not re-run the whole script. Run only the `users` section at the bottom of `src/setup.sql` (it uses `CREATE TABLE IF NOT EXISTS` and `ON CONFLICT DO NOTHING`, so it is safe to run on its own and more than once).
+**Adding login to a database that already has data:** do not re-run the whole script. Run only the `users` and `session` sections at the bottom of `src/setup.sql` (they use `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, and `ON CONFLICT DO NOTHING`, so they are safe to run on their own and more than once).
+
+**Upgrading an existing login setup:** logins are now stored in a `session` table (see Security Notes). Run the `session` section of `src/setup.sql` before starting the new version, or every request that touches a session will fail with a 500 error. Everyone is logged out once when you deploy, because the old in-memory sessions do not carry over.
 
 ### 3. Configure environment variables
 
@@ -65,6 +68,7 @@ Create a `.env` file in the project root (it is gitignored, so never commit it):
 
 ```env
 DB_URL=postgresql://user:password@host:5432/dbname
+SESSION_SECRET=replace-with-a-long-random-string
 NODE_ENV=development
 PORT=3000
 ENABLE_SQL_LOGGING=true
@@ -73,6 +77,7 @@ ENABLE_SQL_LOGGING=true
 | Variable             | Required | Purpose                                                                                      |
 | -------------------- | -------- | -------------------------------------------------------------------------------------------- |
 | `DB_URL`             | Yes      | PostgreSQL connection string: `postgresql://user:pass@host:port/db`                          |
+| `SESSION_SECRET`     | Yes      | Long random string used to sign session cookies. The server refuses to start without it      |
 | `NODE_ENV`           | No       | `development` or `production` (defaults to `production`)                                     |
 | `PORT`               | No       | Port the server listens on (defaults to `3000`)                                              |
 | `ENABLE_SQL_LOGGING` | No       | `true` logs every query with timing. Only takes effect when `NODE_ENV=development`           |
@@ -131,7 +136,9 @@ Route IDs are validated by `parseId` (positive 32-bit integers only). Invalid or
 server.js                    # App bootstrap, middleware, error handling
 src/
   routes/index.js            # Route definitions
-  middleware/auth.js         # requireLogin + requireRole + setCurrentUser (exposes user/isAdmin to views)
+  middleware/auth.js         # requireLogin + requireRole + setCurrentUser + refreshSessionUser
+  middleware/csrf.js         # CSRF token check for every POST
+  middleware/rateLimit.js    # Login and registration rate limits
   utils/password.js          # scrypt password hashing (built into Node, no dependency)
   controllers/               # Parse input, call models, choose a view
     index.js
@@ -149,7 +156,7 @@ src/
     users.js
   views/                     # EJS templates
     partials/                # head, header, footer, category-form
-    errors/                  # 403 (currently unused), 404 and 500 pages
+    errors/                  # 403, 404, 429 and 500 pages
   setup.sql                  # Canonical schema + seed data
 public/
   css/main.css               # Single token-driven stylesheet (light + dark)
@@ -182,9 +189,12 @@ Deleting an organization cascades to its projects. Deleting a project or categor
 - All SQL is parameterized.
 - Server-side validation on every create/edit form (values trimmed; required fields, length limits, email format, a plain-file-name check on logo names, real-calendar-date check on project dates). Client-side `required`/`maxlength`/`type` attributes mirror these, but the server never trusts them.
 - Errors show a generic message to users; details go to the server log only.
-- **Authentication and roles:** users log in with email and password (hashed with scrypt). The session stores only `{ id, name, email, role }`, and the session ID is regenerated on login and logout. New accounts come from `/register` and are always `volunteer`; the role is never read from the form. `requireLogin` guards `/dashboard`, and `requireRole('admin')` guards `/users` and every create/edit route. The role is read from the session, so a role change in the database takes effect the next time that user logs in.
+- **Authentication and roles:** users log in with email and password (hashed with scrypt). The session stores only `{ id, name, email, role }`, and the session ID is regenerated on login and logout. Sessions live in the PostgreSQL `session` table (not in server memory), so they survive restarts, and each login expires after 8 hours. New accounts come from `/register` and are always `volunteer`; the role is never read from the form. `requireLogin` guards `/dashboard`, and `requireRole('admin')` guards `/users` and every create/edit route. On every request from a logged-in user, `refreshSessionUser` re-reads that user from the database (one primary-key lookup), so a role change takes effect on their next request and a deleted account is logged out immediately.
 - **Sample accounts (development only):** `admin@example.org` / `Admin#2026-demo` and `volunteer@example.org` / `Volunteer#2026-demo`, created by `src/setup.sql`. Remove or change them before deploying.
-- **Not yet implemented:** CSRF tokens (session cookies use `SameSite=Lax`, which blocks most cross-site POSTs, but tokens are still recommended), security headers (e.g. `helmet`), and rate limiting on login and registration (`/register` is a public endpoint that runs the password hasher, so it can be scripted without limit).
+- **CSRF protection:** every POST must carry a per-session random token (hidden `_csrf` field, included by `partials/csrf-field.ejs`), checked in constant time by `src/middleware/csrf.js`. A missing or wrong token gets a 403 page. Any new form must include that partial. The session cookie is also `HttpOnly` and `SameSite=Lax` (plus `Secure` in production).
+- **Security headers:** `helmet` sets a Content-Security-Policy that only allows this site's own scripts, styles, and images, plus clickjacking, MIME-sniffing, and referrer protections. Because of the CSP, views must not use inline `<script>` blocks or inline event handlers such as `onclick`; put scripts in `public/js/`.
+- **Rate limiting:** `POST /login` allows 10 failed attempts per IP address per 15 minutes (successful logins are not counted), and `POST /register` allows 10 attempts per IP address per hour. Over the limit returns a 429 page. Counters are kept in server memory, so they reset on restart and are not shared if you run more than one instance.
+- **Not yet implemented:** account lockout per email address (the limits above are per IP address), password reset, and email verification.
 
 ## Known Issues
 

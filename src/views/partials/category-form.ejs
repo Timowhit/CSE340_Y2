@@ -8,6 +8,7 @@
 <% } %>
 
 <form class="category-form" method="post" action="<%= formAction %>">
+    <%- include('csrf-field') %>
     <label for="name">Category name</label>
     <input
         type="text"

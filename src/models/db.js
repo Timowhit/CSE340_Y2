@@ -97,4 +97,6 @@ const testConnection = async() => {
     }
 };
 
-export { db as default, testConnection };
+// `pool` is the raw pg Pool. Most code should use the default export (`db`), but the session
+// store needs the real pool because it listens for pool errors, which the logging wrapper lacks.
+export { db as default, pool, testConnection };

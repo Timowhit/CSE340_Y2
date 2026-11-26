@@ -17,6 +17,22 @@ const findUserByEmail = async (email) => {
 };
 
 /**
+ * Looks up a user by id so a logged-in session can be checked against the current database row.
+ * @param {number} id - The user_id stored in the session.
+ * @returns {Promise<{user_id: number, name: string, email: string, role: string}|null>}
+ *          The user without their password hash, or null if the account no longer exists.
+ */
+const findUserById = async (id) => {
+    const query = `
+        SELECT user_id, name, email, role
+        FROM public.users
+        WHERE user_id = $1;
+    `;
+    const result = await db.query(query, [id]);
+    return result.rows[0] ?? null;
+};
+
+/**
  * Lists every registered user for the admin users page. Never includes password hashes.
  * @returns {Promise<Array<{user_id: number, name: string, email: string, role: string}>>}
  *          All users, ordered by name then email.
@@ -49,4 +65,4 @@ const createUser = async ({ name, email, passwordHash }) => {
     return result.rows[0];
 };
 
-export { findUserByEmail, getAllUsers, createUser };
+export { findUserByEmail, findUserById, getAllUsers, createUser };

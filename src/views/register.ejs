@@ -9,6 +9,7 @@
     <%- include('partials/form-errors') %>
 
     <form class="record-form" method="post" action="/register">
+        <%- include('partials/csrf-field') %>
         <div class="form-field">
             <label for="name">Name</label>
             <input

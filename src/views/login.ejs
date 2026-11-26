@@ -8,6 +8,7 @@
     <%- include('partials/form-errors') %>
 
     <form class="record-form" method="post" action="/login">
+        <%- include('partials/csrf-field') %>
         <div class="form-field">
             <label for="email">Email</label>
             <input

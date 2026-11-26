@@ -2,6 +2,7 @@
 
 <% const invalid = (field) => errors.some(error => error.field === field); %>
 <form class="record-form" method="post" action="<%= formAction %>">
+    <%- include('csrf-field') %>
     <div class="form-field">
         <label for="title">Project title</label>
         <input

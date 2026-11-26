@@ -8,6 +8,7 @@
         <% if (locals.user) { %>
         <li>
             <form method="post" action="/logout">
+                <%- include('csrf-field') %>
                 <button type="submit" aria-label="Log out <%= user.name %>">Log out</button>
             </form>
         </li>

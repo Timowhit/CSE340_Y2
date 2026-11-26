@@ -3,6 +3,7 @@ import { showHomePage } from '../controllers/index.js';
 import { showLoginForm, processLogin, processLogout } from '../controllers/auth.js';
 import { showDashboard, showUsersPage, showRegisterForm, processRegister } from '../controllers/users.js';
 import { requireLogin, requireRole } from '../middleware/auth.js';
+import { loginLimiter, registerLimiter } from '../middleware/rateLimit.js';
 import {
     showOrganizationsPage,
     showOrganizationDetailsPage,
@@ -35,10 +36,10 @@ const requireAdmin = requireRole('admin');
 
 router.get('/', showHomePage);
 router.get('/login', showLoginForm);
-router.post('/login', processLogin);
+router.post('/login', loginLimiter, processLogin);
 router.post('/logout', processLogout);
 router.get('/register', showRegisterForm);
-router.post('/register', processRegister);
+router.post('/register', registerLimiter, processRegister);
 router.get('/dashboard', requireLogin, showDashboard);
 router.get('/users', requireAdmin, showUsersPage);
 router.get('/organizations', showOrganizationsPage);
