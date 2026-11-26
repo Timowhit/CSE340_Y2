@@ -99,6 +99,6 @@ CREATE TABLE IF NOT EXISTS users (
 -- DEVELOPMENT-ONLY sample accounts (passwords are listed in the README).
 -- Delete these rows or change their passwords before the app is reachable by anyone else.
 INSERT INTO users (name, email, password_hash, role) VALUES
-    ('Site Admin', 'admin@example.org', '193cd25377b42e5193e6a36a85aa8fd2:7d17f58a6d5c234b9f5e4673f2fd08f6d21436662cdf388e5c2dedb32dbf3b3d307608a4527149f839edc200e68b21ae0d3bc1ade96e3546aafdb7ee83c4fc0d', 'admin'),
-    ('Sample Volunteer', 'volunteer@example.org', 'fe1b8ed281e45885a0e9c753ced2b505:059d339a93e32e1e6987ce72137fe6f49816c46924ee4c65189a016b06e34d636a7a857dac8ec016e31abc1f9c55237a5a8ee34ba9e87d273620cc1c4d942fe7', 'volunteer')
+    ('Site Admin', 'admin@example.org', 'ae11b6932367d56ae02d6cb7f9703a39:034914132df93bf095f73fae5eb569a678eb0dbd9a45fd6bce16417738178c84824d31c391ba6cd2942a6df926fc96a070b45a81c85cd0fb4fa23e95d84d7652', 'admin'),
+    ('Sample Volunteer', 'volunteer@example.org', 'fe1b8ed281e45885a0e9c753ced2b505:059d339a93e32e1e6987ce72137fe6f49816c46924ee4c65189a016b06e34d636a7a857dac8ec016e31abc1f9c55237a5a8ee34ba9e87d273620cc1c4d942fe6', 'volunteer')
 ON CONFLICT (email) DO NOTHING;
