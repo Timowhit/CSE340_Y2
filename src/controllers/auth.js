@@ -1,15 +1,11 @@
 import { findUserByEmail } from '../models/users.js';
 import { verifyPassword } from '../utils/password.js';
-
-const EMAIL_MAX = 255;
-const PASSWORD_MAX = 200; // stops absurdly long passwords from tying up the hasher
+import { collectForm } from '../middleware/validation.js';
 
 // Checked when the email is unknown so a missing account takes as long to reject as a wrong
 // password. That keeps response time from revealing which emails have accounts.
 const DUMMY_HASH =
     '0156f43e85322a62ca6f927dd569b617:df9b56698d028026bc25adce25492818d2288782114cb328040e45a4ac067a79f80d7e8f9b47768074fba1e9cf78dc7b8d27017fccf8caedeef7eca65fff9652';
-
-const readText = (value) => (typeof value === 'string' ? value : '');
 
 /** Wraps the callback-style session.regenerate so it can be awaited. */
 const regenerateSession = (req) =>
@@ -31,16 +27,11 @@ const showLoginForm = (req, res) => {
 
 const processLogin = async (req, res, next) => {
     try {
-        const body = req.body ?? {}; // undefined when the request is not a urlencoded form
-        const email = readText(body.email).trim().toLowerCase();
-        const password = readText(body.password);
+        // The rules live in validateLogin (src/middleware/validation.js), which runs before this.
+        const { values, data, errors } = collectForm(req, ['email']);
+        if (errors.length > 0) return renderLogin(res, 400, values.email, errors);
 
-        const errors = [];
-        if (email.length === 0) errors.push({ field: 'email', message: 'Email is required.' });
-        else if (email.length > EMAIL_MAX) errors.push({ field: 'email', message: 'Email is too long.' });
-        if (password.length === 0) errors.push({ field: 'password', message: 'Password is required.' });
-        else if (password.length > PASSWORD_MAX) errors.push({ field: 'password', message: 'Password is too long.' });
-        if (errors.length > 0) return renderLogin(res, 400, email, errors);
+        const { email, password } = data;
 
         const user = await findUserByEmail(email);
         const passwordMatches = await verifyPassword(password, user?.password_hash ?? DUMMY_HASH);

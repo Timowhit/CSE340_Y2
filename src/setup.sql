@@ -1,4 +1,15 @@
 -- ========================================
+-- Reset: drop the tables this script owns so it can be re-run
+-- ========================================
+-- WARNING: this deletes every organization, project, and category (and their links).
+-- The users and session tables further down are never dropped.
+-- Children first, so foreign keys never block a drop.
+DROP TABLE IF EXISTS project_categories;
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS organization;
+
+-- ========================================
 -- Organization Table
 -- ========================================
 CREATE TABLE organization (
@@ -23,10 +34,6 @@ SELECT * FROM organization;
 -- ============================================
 -- Projects, Categories, and their relationship
 -- ============================================
-
-DROP TABLE IF EXISTS project_categories;
-DROP TABLE IF EXISTS projects;
-DROP TABLE IF EXISTS categories;
 
 -- Service projects (each belongs to one organization)
 CREATE TABLE projects (
@@ -97,11 +104,13 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- DEVELOPMENT-ONLY sample accounts (passwords are listed in the README).
+-- Re-running this section resets the sample accounts' passwords to the README values, which
+-- repairs a database that was seeded with an earlier, wrong hash.
 -- Delete these rows or change their passwords before the app is reachable by anyone else.
 INSERT INTO users (name, email, password_hash, role) VALUES
-    ('Site Admin', 'admin@example.org', 'ae11b6932367d56ae02d6cb7f9703a39:034914132df93bf095f73fae5eb569a678eb0dbd9a45fd6bce16417738178c84824d31c391ba6cd2942a6df926fc96a070b45a81c85cd0fb4fa23e95d84d7652', 'admin'),
+    ('Site Admin', 'admin@example.org', '41b2542b91d412f5e963cf7fdfb7b06d:7e3642569a108f831b83841dfa56a921f9b11009b7238dd453f7866e9a7e641da75acee1b1dbf836e1ce3f5c3e32320b5535fd3f1676c5f3afe1d1d15781c37a', 'admin'),
     ('Sample Volunteer', 'volunteer@example.org', 'fe1b8ed281e45885a0e9c753ced2b505:059d339a93e32e1e6987ce72137fe6f49816c46924ee4c65189a016b06e34d636a7a857dac8ec016e31abc1f9c55237a5a8ee34ba9e87d273620cc1c4d942fe6', 'volunteer')
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash;
 
 
 -- ============================================

@@ -6,33 +6,17 @@ import {
 } from '../models/categories.js';
 import { getProjectsByCategoryId } from '../models/projects.js';
 import { parseId } from './parseId.js';
+import { collectForm } from '../middleware/validation.js';
 
-const NAME_MIN = 3;
-const NAME_MAX = 100;
 const UNIQUE_VIOLATION = '23505'; // PostgreSQL error code
 
 /**
- * Trims and validates a category name (server-side rules).
- * @param {unknown} rawName - Value from req.body.name.
- * @returns {{name: string, errors: string[]}}
+ * Reads the validated category form (rules live in validateCategory, run by the route).
+ * The category view lists plain message strings, so the field names are dropped here.
  */
-const validateCategoryName = (rawName) => {
-    // Non-strings (e.g. repeated form fields parsed as arrays) count as missing
-    const name = typeof rawName === 'string' ? rawName.trim() : '';
-    const errors = [];
-
-    if (name.length === 0) {
-        errors.push('Category name is required.');
-    } else {
-        if (name.length < NAME_MIN) {
-            errors.push(`Category name must be at least ${NAME_MIN} characters.`);
-        }
-        if (name.length > NAME_MAX) {
-            errors.push(`Category name must be ${NAME_MAX} characters or fewer.`);
-        }
-    }
-
-    return { name, errors };
+const readCategoryForm = (req) => {
+    const { values, errors } = collectForm(req, ['name']);
+    return { name: values.name, errors: errors.map((error) => error.message) };
 };
 
 const showCategoriesPage = async (req, res, next) => {
@@ -70,7 +54,7 @@ const showNewCategoryForm = (req, res) => {
 };
 
 const processNewCategory = async (req, res, next) => {
-    const { name, errors } = validateCategoryName(req.body?.name);
+    const { name, errors } = readCategoryForm(req);
 
     const renderWithErrors = () => res.status(400).render('new-category', {
         title: 'New Category',
@@ -121,7 +105,7 @@ const processEditCategory = async (req, res, next) => {
     const id = parseId(req.params.id);
     if (id === null) return next();
 
-    const { name, errors } = validateCategoryName(req.body?.name);
+    const { name, errors } = readCategoryForm(req);
 
     const renderWithErrors = () => res.status(400).render('edit-category', {
         title: 'Edit Category',
@@ -156,4 +140,4 @@ export {
     processNewCategory,
     showEditCategoryForm,
     processEditCategory
-};
+};

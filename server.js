@@ -54,7 +54,9 @@ app.use(express.urlencoded({ extended: true })); // parses HTML form POST bodies
 const PgSessionStore = connectPgSimple(session);
 
 app.use(session({
-    store: new PgSessionStore({ pool }),
+    // createTableIfMissing builds the `session` table on first use, so a database that was set
+    // up before sessions existed does not break every login (setup.sql still defines it).
+    store: new PgSessionStore({ pool, createTableIfMissing: true }),
     secret: process.env.SESSION_SECRET,
     resave: false,            // don't re-save sessions that didn't change
     saveUninitialized: false, // don't create a session (or cookie) until we store something
@@ -109,4 +111,4 @@ app.listen(PORT, async () => {
   } catch (error) {
     console.error('Error connecting to the database:', error);
   }
-});
+});

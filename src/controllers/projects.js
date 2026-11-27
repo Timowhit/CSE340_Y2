@@ -7,82 +7,21 @@ import {
 import { getCategoriesByProjectId } from '../models/categories.js';
 import { getAllOrganizations } from '../models/organizations.js';
 import { parseId } from './parseId.js';
+import { collectForm } from '../middleware/validation.js';
 
-const TITLE_MIN = 3;
-const TITLE_MAX = 150;
-const DESCRIPTION_MAX = 2000;
-const LOCATION_MAX = 200;
-const YEAR_MIN = 1900; // keeps dates inside what PostgreSQL and the date picker handle sanely
-const YEAR_MAX = 2100;
 const FOREIGN_KEY_VIOLATION = '23503'; // PostgreSQL error code
 
+const FORM_FIELDS = ['title', 'description', 'location', 'project_date', 'organization_id'];
 const EMPTY_VALUES = { title: '', description: '', location: '', project_date: '', organization_id: '' };
 
-/** Non-strings (e.g. repeated form fields parsed as arrays) count as missing. */
-const readText = (value) => (typeof value === 'string' ? value.trim() : '');
-
 /**
- * True only for a real calendar date written as YYYY-MM-DD.
- * Round-tripping through Date rejects things like 2026-02-30.
- */
-const isValidDate = (text) => {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
-    const year = Number(text.slice(0, 4));
-    if (year < YEAR_MIN || year > YEAR_MAX) return false;
-    const date = new Date(`${text}T00:00:00Z`);
-    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === text;
-};
-
-/**
- * Trims and validates the project form (server-side rules).
+ * Reads the validated project form (rules live in validateProject, run by the route).
  * `values.organization_id` stays a string so the <select> can re-select it;
  * the model receives a number via `data`.
- * @param {Object} [body] - req.body
- * @returns {{values: Object, data: Object, errors: Array<{field: string, message: string}>}}
  */
-const validateProject = (body = {}) => {
-    const values = {
-        title: readText(body.title),
-        description: readText(body.description),
-        location: readText(body.location),
-        project_date: readText(body.project_date),
-        organization_id: readText(body.organization_id)
-    };
-    const errors = [];
-    const fail = (field, message) => errors.push({ field, message });
-
-    if (values.title.length === 0) {
-        fail('title', 'Project title is required.');
-    } else if (values.title.length < TITLE_MIN) {
-        fail('title', `Project title must be at least ${TITLE_MIN} characters.`);
-    } else if (values.title.length > TITLE_MAX) {
-        fail('title', `Project title must be ${TITLE_MAX} characters or fewer.`);
-    }
-
-    if (values.description.length === 0) {
-        fail('description', 'Description is required.');
-    } else if (values.description.length > DESCRIPTION_MAX) {
-        fail('description', `Description must be ${DESCRIPTION_MAX} characters or fewer.`);
-    }
-
-    if (values.location.length === 0) {
-        fail('location', 'Location is required.');
-    } else if (values.location.length > LOCATION_MAX) {
-        fail('location', `Location must be ${LOCATION_MAX} characters or fewer.`);
-    }
-
-    if (values.project_date.length === 0) {
-        fail('project_date', 'Project date is required.');
-    } else if (!isValidDate(values.project_date)) {
-        fail('project_date', `Enter a real date between ${YEAR_MIN} and ${YEAR_MAX} (YYYY-MM-DD).`);
-    }
-
-    const organizationId = parseId(values.organization_id);
-    if (organizationId === null) {
-        fail('organization_id', 'Choose an organization.');
-    }
-
-    return { values, data: { ...values, organization_id: organizationId }, errors };
+const readProjectForm = (req) => {
+    const { values, errors } = collectForm(req, FORM_FIELDS);
+    return { values, data: { ...values, organization_id: parseId(values.organization_id) }, errors };
 };
 
 /**
@@ -142,7 +81,7 @@ const showNewProjectForm = async (req, res, next) => {
 
 const processNewProject = async (req, res, next) => {
     try {
-        const { values, data, errors } = validateProject(req.body);
+        const { values, data, errors } = readProjectForm(req);
 
         if (errors.length === 0) {
             try {
@@ -199,7 +138,7 @@ const processEditProject = async (req, res, next) => {
         const id = parseId(req.params.id);
         if (id === null) return next();
 
-        const { values, data, errors } = validateProject(req.body);
+        const { values, data, errors } = readProjectForm(req);
 
         if (errors.length === 0) {
             try {

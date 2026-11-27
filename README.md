@@ -47,7 +47,7 @@ Create an empty PostgreSQL database, then run the schema and seed data:
 psql "$DB_URL" -f src/setup.sql
 ```
 
-> **Warning:** `src/setup.sql` is the source of truth for the schema, but it is **destructive**. It runs `DROP TABLE IF EXISTS` on `project_categories`, `projects`, and `categories`. Do not run it against a database that holds data you want to keep. It also runs a plain `CREATE TABLE organization`, so running it twice against the same database will fail on that statement unless you drop that table first.
+> **Warning:** `src/setup.sql` is the source of truth for the schema, but it is **destructive**. It starts by running `DROP TABLE IF EXISTS` on `project_categories`, `projects`, `categories`, and `organization`, so every organization, project, and category is deleted and re-seeded each time. Do not run it against a database that holds data you want to keep. Because of that reset, the script can be run any number of times without errors. The `users` and `session` tables are never dropped.
 
 The script creates and seeds:
 
@@ -58,9 +58,9 @@ The script creates and seeds:
 - `users` (2 development accounts: one `admin`, one `volunteer`)
 - `session` (login sessions, managed by `connect-pg-simple`)
 
-**Adding login to a database that already has data:** do not re-run the whole script. Run only the `users` and `session` sections at the bottom of `src/setup.sql` (they use `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, and `ON CONFLICT DO NOTHING`, so they are safe to run on their own and more than once).
+**Adding login to a database that already has data:** do not re-run the whole script. Run only the `users` and `session` sections at the bottom of `src/setup.sql` (they use `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, and an upsert for the sample accounts, so they are safe to run on their own and more than once). Re-running the `users` section resets the two sample accounts' passwords to the values listed under Security Notes, which repairs a database seeded with an older, incorrect admin hash.
 
-**Upgrading an existing login setup:** logins are now stored in a `session` table (see Security Notes). Run the `session` section of `src/setup.sql` before starting the new version, or every request that touches a session will fail with a 500 error. Everyone is logged out once when you deploy, because the old in-memory sessions do not carry over.
+**Upgrading an existing login setup:** logins are now stored in a `session` table (see Security Notes). The app now creates the `session` table itself on first use (`createTableIfMissing`), but you should still run the `session` section of `src/setup.sql` so the table and its index match the schema file. Everyone is logged out once when you deploy, because the old in-memory sessions do not carry over.
 
 ### 3. Configure environment variables
 
@@ -139,6 +139,7 @@ src/
   middleware/auth.js         # requireLogin + requireRole + setCurrentUser + refreshSessionUser
   middleware/csrf.js         # CSRF token check for every POST
   middleware/rateLimit.js    # Login and registration rate limits
+  middleware/validation.js   # express-validator rules for every form + collectForm helper
   utils/password.js          # scrypt password hashing (built into Node, no dependency)
   controllers/               # Parse input, call models, choose a view
     index.js
@@ -187,7 +188,7 @@ Deleting an organization cascades to its projects. Deleting a project or categor
 ## Security Notes
 
 - All SQL is parameterized.
-- Server-side validation on every create/edit form (values trimmed; required fields, length limits, email format, a plain-file-name check on logo names, real-calendar-date check on project dates). Client-side `required`/`maxlength`/`type` attributes mirror these, but the server never trusts them.
+- Server-side validation on every form (login, register, and every create/edit form) using `express-validator`. The rules live in `src/middleware/validation.js` and are applied as route middleware (`router.post('/login', loginLimiter, validateLogin, processLogin)`); controllers read the result with `collectForm`. Values trimmed; required fields, length limits, email format, a plain-file-name check on logo names, real-calendar-date check on project dates). Client-side `required`/`maxlength`/`type` attributes mirror these, but the server never trusts them.
 - Errors show a generic message to users; details go to the server log only.
 - **Authentication and roles:** users log in with email and password (hashed with scrypt). The session stores only `{ id, name, email, role }`, and the session ID is regenerated on login and logout. Sessions live in the PostgreSQL `session` table (not in server memory), so they survive restarts, and each login expires after 8 hours. New accounts come from `/register` and are always `volunteer`; the role is never read from the form. `requireLogin` guards `/dashboard`, and `requireRole('admin')` guards `/users` and every create/edit route. On every request from a logged-in user, `refreshSessionUser` re-reads that user from the database (one primary-key lookup), so a role change takes effect on their next request and a deleted account is logged out immediately.
 - **Sample accounts (development only):** `admin@example.org` / `Admin#2026-demo` and `volunteer@example.org` / `Volunteer#2026-demo`, created by `src/setup.sql`. Remove or change them before deploying.
